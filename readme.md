@@ -185,6 +185,26 @@ public class Client {
     }
 }
 ```
+
+# Common Java Socket Programming Exceptions
+
+| Exception / Error                  | Cause / Reason                                                                 | How to Handle / Fix                                                                 |
+|----------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| `BindException: Address already in use` | Port is already being used by another process                                   | Use a different port, check running processes, or enable `server.setReuseAddress(true)` |
+| `ConnectException: Connection refused` | Client cannot connect: server not running or wrong IP/port                     | Ensure server is running, use correct IP/hostname, handle exception gracefully     |
+| `SocketTimeoutException`           | Reading or connecting timed out                                               | Set proper timeout using `setSoTimeout()`, handle exception                        |
+| `IOException: Stream closed`       | Reading/writing after socket or stream has been closed                        | Close streams only after communication, use try-with-resources                      |
+| Blocking I/O                        | `accept()`, `read()`, `write()` block until data is available                 | Use threads for each client or non-blocking NIO                                     |
+| `UnknownHostException`             | Invalid hostname or DNS cannot resolve                                        | Verify hostname, use `InetAddress.getByName()`, handle exception                    |
+| `EOFException`                     | End of stream reached unexpectedly                                             | Coordinate send/receive operations, handle exception gracefully                    |
+| `SecurityException` / Firewall issues | OS firewall or Java SecurityManager blocks the connection                     | Ensure firewall allows port, run with proper permissions                             |
+| Resource leaks (sockets not closed) | Not closing sockets or streams leads to resource exhaustion                   | Always close sockets/streams using try-with-resources or finally blocks             |
+
+
+
+
+
+
 ## Listen
 ```c
 #include <stdio.h>
