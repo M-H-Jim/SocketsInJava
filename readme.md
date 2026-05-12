@@ -149,7 +149,10 @@ public class Server {
         }
     }
 }
+```
+## 2. Client Code
 
+```java
 import java.net.InetAddress;
 import java.net.Socket;
 import java.io.InputStream;
@@ -181,8 +184,67 @@ public class Client {
         }
     }
 }
+```
+## Listen
+```c
+#include <stdio.h>
+#include <string.h>
+#include <winsock2.h>
 
+int main() {
+    WSADATA wsaData;
+    SOCKET clientSocket;
+    struct sockaddr_in serverAddr;
+    char buffer[1024];
+    int result;
 
+    result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        printf("WSAStartup failed\n");
+        return 1;
+    }
+
+    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket == INVALID_SOCKET) {
+        printf("Socket creation failed!\n");
+        WSACleanup();
+        return 1;
+    }
+
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(8080);
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    printf("Connecting to server...\n");
+
+    if (connect(clientSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        printf("Connect failed! Error: %d\n", WSAGetLastError());
+        closesocket(clientSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    printf("Conencted to server\n");
+
+    const char *message = "Hello server! How are you?";
+    send(clientSocket, message, strlen(message), 0);
+    printf("Sent to server: %s\n", message);
+
+    result = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+    if (result > 0) {
+        buffer[result] = '\0';
+        printf("Received from server: %s\n", buffer);
+    }
+
+    closesocket(clientSocket);
+    WSACleanup();
+
+    printf("\nPress Enter to exit client...\n");
+    getchar();
+
+    return 0;
+}
+```
 
 
 
