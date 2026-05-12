@@ -24,6 +24,8 @@
   - Unreliable: no guarantee packets arrive or are in order.
   - Lower overhead, faster, ideal for real-time applications like streaming, gaming, or VoIP.
 
+![TCP Handshake Diagram](TCP.png)
+
 ---
 
 ## 3. Endpoints
