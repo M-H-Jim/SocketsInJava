@@ -4,34 +4,46 @@
 
 - Sockets are an **abstraction provided by operating systems** to enable communication between different processes, either **on the same machine** or **over a network**.
 - A **socket** is **one end-point of a two-way communication link** between two programs running on the network.
+- Sockets allow programs to **send and receive data** over the network using **TCP or UDP protocols**.
 
 ---
 
-## 2. Java Networking (`java.net` package)
+## 2. TCP vs UDP
 
-- **Socket**  
-  - Implements the **client side** of a connection.
-- **ServerSocket**  
-  - Implements the **server side** of a connection.
+- **TCP (Transmission Control Protocol)**
+  - Connection-oriented: establishes a reliable connection between two endpoints.
+  - Reliable data transfer: guarantees delivery of all packets in order.
+  - Uses a **three-way handshake** to establish a connection:
+    1. SYN – client requests connection.
+    2. SYN/ACK – server acknowledges and responds.
+    3. ACK – client confirms connection established.
+  - Suitable for applications like web browsing, file transfer, email.
+  
+- **UDP (User Datagram Protocol)**
+  - Connectionless: no handshake, sends packets (datagrams) without establishing a connection.
+  - Unreliable: no guarantee packets arrive or are in order.
+  - Lower overhead, faster, ideal for real-time applications like streaming, gaming, or VoIP.
 
 ---
 
-## 3. Port Numbers
+## 3. Endpoints
 
-- Each **socket is bound to a port number** to identify the application that data is to be sent to.
-- A **server waits on the listening socket** for incoming connections.
-- The **client** knows the **hostname** and **port** of the server it wants to connect to.
-- The client also needs to **identify itself to the server** by binding to a **local port number** that it will use during this connection.
-
----
-
-## 4. Endpoints
-
-- An **endpoint** consists of:  
-  - **TCP / UDP protocol**  
+- An **endpoint** is uniquely identified by a combination of:
   - **IP address**  
-  - **Port number**
+  - **Port number**  
+  - **Protocol (TCP/UDP)**
 
+- **TCP connections** are identified by a **4-tuple**:
+  - `(source IP, source port, destination IP, destination port)`
+- This allows multiple clients to connect to the **same server port** simultaneously, each with a unique combination.
+
+---
+
+## 4. Port Numbers
+
+- Each **socket is bound to a port number** to identify the application that data is sent to.
+- Servers wait on a **listening socket** for incoming client connections.
+- Clients connect using the **server hostname/IP and port**, and bind to a **local ephemeral port** automatically assigned by the OS if not specified.
 - Each host has **65,536 ports** (0–65535).
 
 ### Port Ranges
@@ -52,16 +64,132 @@
 
 ---
 
-## 5. TCP vs UDP
+## 5. Client-Server Model
 
-- **TCP (Transmission Control Protocol)**
-  - Connection-oriented
-  - Reliable data transfer
-  - Uses **handshake** to establish connection
-  - Guarantees delivery and order of packets
+- **Server**
+  - Uses a **ServerSocket** (listening socket) to wait for incoming connections.
+  - When a client connects, the server creates a **connection socket** for that client.
+  - Can handle **multiple clients simultaneously** using separate connection sockets.
+  
+- **Client**
+  - Uses a **Socket** object to connect to the server.
+  - The OS assigns an **ephemeral port** for the client side.
+  - Communication occurs over the **connected socket**.
 
-- **UDP (User Datagram Protocol)**
-  - Connectionless
-  - Unreliable, no guarantee of delivery or order
-  - Lower overhead, faster
-  - Used for applications like streaming or gaming where speed is more important than reliability
+---
+
+## 6. Java Networking (`java.net` package)
+
+- **Socket**
+  - Implements the **client side** of a connection.
+  - Example: `Socket socket = new Socket("serverIP", port);`
+  
+- **ServerSocket**
+  - Implements the **server side** of a connection.
+  - Example: 
+    ```java
+    ServerSocket server = new ServerSocket(5000);
+    Socket client = server.accept(); // creates a connection socket
+    ```
+
+- Java sockets are **cross-platform**:
+  - On **Windows**, they use **Winsock2** under the hood.
+  - On **Linux/macOS**, they use **BSD sockets**.
+  - Java communicates with the OS networking APIs via **JNI (Java Native Interface)**.
+
+---
+
+## 7. TCP Connection Lifecycle
+
+1. **Listening** – Server waits for incoming connections on a specific port.
+2. **Handshake** – TCP three-way handshake establishes a reliable connection.
+3. **Data Transfer** – Client and server exchange messages over the connected socket.
+4. **Termination** – Connection is closed gracefully, resources are released.
+
+---
+
+## 8. Summary
+
+- Sockets provide an **abstraction for network communication**.
+- TCP ensures **reliable communication**, UDP prioritizes **speed**.
+- **Ports and endpoints** allow multiple applications to share the network interface.
+- Java’s `Socket` and `ServerSocket` classes provide **easy-to-use APIs** for building network applications without worrying about OS-level details.
+
+# Java Socket Example
+
+## 1. Server Code
+
+```java
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.OutputStream;
+
+public class Server {
+    public static void main(String[] args) {
+        try {
+            System.out.println("Server starting...");
+            
+            ServerSocket server = new ServerSocket(5000);
+            System.out.println("Waiting for client...");
+            
+            Socket client = server.accept();
+            System.out.println("Client connected...");
+            
+            OutputStream out = client.getOutputStream();
+            String message = "Hello I am Jim from server";
+            
+            out.write(message.getBytes());
+            
+            System.out.println("Message sent");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+import java.net.InetAddress;
+import java.net.Socket;
+import java.io.InputStream;
+
+public class Client {
+    public static void main(String[] args) {
+        try {
+            System.out.println("Connecting to server...");
+            
+            // InetAddress addr = InetAddress.getByName("localhost");
+            // Socket socket = new Socket("localhost", 5000, addr, 5041);
+            
+            Socket socket = new Socket("localhost", 5000);
+            System.out.println("Connected to server!");
+            
+            InputStream in = socket.getInputStream();
+            
+            byte[] buffer = new byte[1024];
+            
+            int bytesRead = in.read(buffer);
+            
+            String message = new String(buffer, 0, bytesRead);
+            
+            System.out.println("Received: " + message);
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
